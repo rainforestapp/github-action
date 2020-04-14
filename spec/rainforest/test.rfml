@@ -1,0 +1,8 @@
+#! lol
+# title: Check action works
+
+Go to https://github.com/rainforestapp/rainforest-github-action/actions
+Click on the newest entry in the main table. Did it load?
+
+Look at the page.
+Does it have a green tick next to "Test & Deploy"?
