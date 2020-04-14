@@ -1,4 +1,4 @@
-name: 'Rainforest QA RFML Runner'
+name: 'Rainforest QA: RFML Runner'
 description: 'Run RFML tests from your repo'
 inputs:
   rainforest_api_key:  # id of input
