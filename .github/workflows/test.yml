@@ -5,12 +5,12 @@ on:
       - master
 
 jobs:
-  deploy:
+  rainforest:
     runs-on: ubuntu-latest
-    name: Test & Deploy
+    name: Run Rainforest
     steps:
-      - uses: actions/checkout@master
       - name: Rainforest
         uses: rainforestapp/rainforest-github-action@master
-        env:
-          RAINFOREST_API_TOKEN: ${{ secrets.RAINFOREST_API_TOKEN }}
+        with:
+          token: ${{ secrets.RAINFOREST_API_TOKEN }}
+          run_group_id: 9861
