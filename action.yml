@@ -57,6 +57,9 @@ runs:
         # Show Action Version
         echo "Using Rainforest GitHub Action v${{ env.version }}"
 
+        # Ensure results directory is there
+        mkdir -p results/rainforest
+
         echo "::add-mask::${{ inputs.token }}"
 
         # Validate token
@@ -71,7 +74,7 @@ runs:
           exit 1
         fi
 
-        RUN_COMMAND="run --skip-update --token ${{ inputs.token }} --run-group ${{ inputs.run_group_id }}"
+        RUN_COMMAND="run --skip-update --token ${{ inputs.token }} --run-group ${{ inputs.run_group_id }} --junit-file results/rainforest/junit.xml"
 
         # Validate conflict
         if [ -n "${{ inputs.conflict }}" ] ; then
@@ -141,3 +144,15 @@ runs:
         GH_ACTION_VERSION: ${{ env.version }}
       with:
         args: ${{ steps.validate.outputs.command }}
+    - name: Archive Rainforest results
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: Test Results
+        path: results/rainforest/junit.xml
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v2
+      if: always()
+      with:
+        check_name: Rainforest Results
+        report_paths: results/rainforest/junit.xml
