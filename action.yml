@@ -1,15 +1,158 @@
-name: 'Rainforest QA: RFML Runner'
-description: 'Run RFML tests from your repo'
+name: Rainforest QA GitHub Action
+description: Easily trigger a Rainforest Run from your GitHub workflows
 inputs:
-  rainforest_api_key:  # id of input
-    description: 'Rainforest API key'
-    required: true
-runs:
-  using: 'docker'
-  image: 'docker://gcr.io/rf-public-images/rainforest-cli:latest'
-  args:
-    - 'run'
-    - '--fail-fast'
-    - '-f'
-    - 'spec/rainforest'
+  description:
+    description: An arbitrary string to associate with the run
+    required: false
+    default: ''
 
+  run_group_id:
+    description: Only run tests tied to this Run Group
+    required: true
+
+  environment_id:
+    description: Use a specific environment for this run
+    required: false
+    default: ''
+
+  conflict:
+    description: How other currently in-progress runs should be handled. Values are `abort` to cancel runs in the same environment as your new run and `abort-all` to cancel all runs
+    required: false
+    default: ''
+
+  crowd:
+    description: The crowd to use for this run
+    required: false
+    default: ''
+
+  release:
+    description: Manually entered release information about the release the run is associated with
+    required: false
+    default: ''
+
+  token:
+    description: Your Rainforest QA API token
+    required: true
+
+  dry_run:
+    description: Set to true to run parameter validations without starting a new Rainforest run
+    required: false
+    default: ''
+
+  background:
+    description: Do not wait for a run to complete before exiting
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Set Action Version
+      shell: bash
+      run: |
+        echo "version=0.0.1" >> $GITHUB_ENV
+    - name: Validate Parameters
+      shell: bash
+      id: validate
+      run: |
+        # Show Action Version
+        echo "Using Rainforest GitHub Action v${{ env.version }}"
+
+        # Ensure results directory is there
+        mkdir -p results/rainforest
+
+        echo "::add-mask::${{ inputs.token }}"
+
+        # Validate token
+        if [ -z "${{ inputs.token }}" ] ; then
+          echo "Error: Token not set"
+          exit 1
+        fi
+
+        # Validate run_group_id
+        if ! echo "${{ inputs.run_group_id }}" | grep -Eq '^[0-9]+$' ; then
+          echo "Error: run_group_id not a positive integer (${{ inputs.run_group_id }})"
+          exit 1
+        fi
+
+        RUN_COMMAND="run --skip-update --token ${{ inputs.token }} --run-group ${{ inputs.run_group_id }} --junit-file results/rainforest/junit.xml"
+
+        # Validate conflict
+        if [ -n "${{ inputs.conflict }}" ] ; then
+          case "${{ inputs.conflict }}" in
+            abort) ;&
+            abort-all)
+              RUN_COMMAND="${RUN_COMMAND} --conflict ${{ inputs.conflict }}"
+            ;;
+            *)
+              echo "Error: ${1} not in (abort abort-all)"
+              exit 1
+            ;;
+          esac
+        fi
+
+        # Validate environment_id
+        if [ -n "${{ inputs.environment_id }}" ] ; then
+          if echo "${{ inputs.environment_id }}" | grep -Eq '^[0-9]+$' ; then
+            RUN_COMMAND="${RUN_COMMAND} --environment-id ${{ inputs.environment_id }}"
+          else
+            echo "Error: environment_id not a positive integer (${{ inputs.environment_id }})"
+            exit 1
+          fi
+        fi
+
+        # Validate crowd
+        if [ -n "${{ inputs.crowd }}" ] ; then
+          case "${{ inputs.crowd }}" in
+            default) ;&
+            automation) ;&
+            automation_and_crowd) ;&
+            on_premise_crowd)
+                RUN_COMMAND="${RUN_COMMAND} --crowd ${{ inputs.crowd }}"
+            ;;
+            *)
+              echo "Error: ${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
+              exit 1
+            ;;
+          esac
+        fi
+
+        # Set description
+        if [ -n "${{ inputs.description }}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --description '${{ inputs.description }}'"
+        else
+          RUN_COMMAND="${RUN_COMMAND} --description \"${GITHUB_REPOSITORY} - ${GITHUB_REF_NAME} ${GITHUB_JOB} $(date -u +'%FT%TZ')\""
+        fi
+
+        # Set release
+        if [ -n "${{ inputs.release }}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --release '${{ inputs.release }}'"
+        else
+          RUN_COMMAND="${RUN_COMMAND} --release '${GITHUB_SHA}'"
+        fi
+
+        # Set background
+        if [ -n "${{ inputs.background }}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --background"
+        fi
+
+        echo "::set-output name=command::${RUN_COMMAND}"
+
+    - name: Run Rainforest
+      uses: docker://gcr.io/rf-public-images/rainforest-cli:latest
+      if: (! inputs.dry_run)
+      env:
+        GH_ACTION_VERSION: ${{ env.version }}
+      with:
+        args: ${{ steps.validate.outputs.command }}
+    - name: Archive Rainforest results
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: Test Results
+        path: results/rainforest/junit.xml
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v2
+      if: always()
+      with:
+        check_name: Rainforest Results
+        report_paths: results/rainforest/junit.xml
