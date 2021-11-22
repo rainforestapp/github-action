@@ -81,8 +81,6 @@ If no `conflict` parameter is passed in, then no active runs will be canceled.
 
 ### `crowd`
 The crowd to use for this run.
-#### Type
-`enum`
 #### Allowed values
 Value | Behavior | Requirements
 --- | --- | ---
