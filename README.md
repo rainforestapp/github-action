@@ -1,6 +1,6 @@
-# <img src="./logo.svg" height="32px" /> Rainforest QA GitHub Action ![](https://img.shields.io/github/v/release/rainforestapp/rainforest-github-action.svg)
+# <img src="./logo.svg" height="32px" /> Rainforest QA GitHub Action ![](https://img.shields.io/github/v/release/rainforestapp/github-action.svg)
 
-**Marketplace homepage:** [`rainforestapp/rainforest-github-action`](https://github.com/marketplace/actions/rainforest-qa)
+**Marketplace homepage:** [`rainforestapp/github-action`](https://github.com/marketplace/actions/rainforest-qa-github-action)
 
 > This is the Rainforest QA [GitHub Action](https://docs.github.com/en/actions), it allows you to easily kick off a Rainforest run from your GitHub workflows, to make sure that every release passes your Rainforest integration tests.
 
@@ -42,7 +42,7 @@ jobs:
     name: Run Rainforest
     steps:
       - name: Rainforest
-        uses: rainforestapp/rainforest-github-action@master
+        uses: rainforestapp/github-action@master
         with:
           token: ${{ secrets.RAINFOREST_API_TOKEN }}
           run_group_id: 1234
@@ -103,4 +103,4 @@ This section describes the release process for the Action itself:
 1. Create a feature branch and do your work.
 1. Update the version in `action.yml`.
 1. Get review and merge to master.
-1. Create a [GitHub Release](https://github.com/rainforestapp/rainforest-github-actions/releases/new) with the proper `v`-prefixed version tag (i.e. `v0.0.1`). List **Bugfixes**, **Breaking changes**, and **New features** (if present), with links to the PRs. See [previous releases](https://github.com/rainforestapp/rainforest-github-actions/releases) for an idea of the format we're using.
+1. Create a [GitHub Release](https://github.com/rainforestapp/github-action/releases/new) with the proper `v`-prefixed version tag (i.e. `v0.0.1`). List **Bugfixes**, **Breaking changes**, and **New features** (if present), with links to the PRs. See [previous releases](https://github.com/rainforestapp/github-action/releases) for an idea of the format we're using.
