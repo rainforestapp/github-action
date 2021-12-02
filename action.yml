@@ -43,6 +43,11 @@ inputs:
     description: Do not wait for a run to complete before exiting
     required: false
     default: ''
+
+  custom_url:
+    description: Test against an ephemeral (preview) url
+    required: false
+    default: ''
 runs:
   using: composite
   steps:
@@ -133,6 +138,11 @@ runs:
         # Set background
         if [ -n "${{ inputs.background }}" ] ; then
           RUN_COMMAND="${RUN_COMMAND} --background"
+        fi
+
+        # Set custom_url
+        if [ -n "${{ inputs.custom_url }}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --custom-url '${{ inputs.custom_url }}'"
         fi
 
         echo "::set-output name=command::${RUN_COMMAND}"
