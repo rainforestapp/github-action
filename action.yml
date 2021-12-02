@@ -15,6 +15,11 @@ inputs:
     required: false
     default: ''
 
+  custom_url:
+    description: Use a specific URL for this run
+    required: false
+    default: ''
+
   conflict:
     description: How other currently in-progress runs should be handled. Values are `abort` to cancel runs in the same environment as your new run and `abort-all` to cancel all runs
     required: false
@@ -43,6 +48,7 @@ inputs:
     description: Do not wait for a run to complete before exiting
     required: false
     default: ''
+
 runs:
   using: composite
   steps:
@@ -90,8 +96,13 @@ runs:
           esac
         fi
 
-        # Validate environment_id
-        if [ -n "${{ inputs.environment_id }}" ] ; then
+        # Set custom_url, or validate and set environment_id
+        if [ -n "${{ inputs.custom_url }}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --custom-url ${{ inputs.custom_url }}"
+          if [ -n "${{ inputs.environment_id }}" ] ; then
+            echo "::warning title=Environment ID Ignored::You've set values for the mutually exclusive custom_url and environment_id parameters. Unset one of these to fix this warning."
+          fi
+        elif [ -n "${{ inputs.environment_id }}" ] ; then
           if echo "${{ inputs.environment_id }}" | grep -Eq '^[0-9]+$' ; then
             RUN_COMMAND="${RUN_COMMAND} --environment-id ${{ inputs.environment_id }}"
           else
