@@ -142,7 +142,7 @@ runs:
 
         # Set custom_url
         if [ -n "${{ inputs.custom_url }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --custom-url '${{ inputs.custom_url }}'"
+          RUN_COMMAND="${RUN_COMMAND} --custom-url ${{ inputs.custom_url }}"
         fi
 
         echo "::set-output name=command::${RUN_COMMAND}"
