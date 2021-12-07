@@ -166,13 +166,13 @@ runs:
         args: ${{ steps.validate.outputs.command }}
     - name: Archive Rainforest results
       uses: actions/upload-artifact@v2
-      if: always()
+      if: (! inputs.dry_run) && steps.validate.outputs.command && always()
       with:
         name: Test Results
         path: results/rainforest/junit.xml
     - name: Publish Test Report
       uses: mikepenz/action-junit-report@v2
-      if: always()
+      if: (! inputs.dry_run) && steps.validate.outputs.command && always()
       with:
         check_name: Rainforest Results
         report_paths: results/rainforest/junit.xml
