@@ -1,17 +1,173 @@
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - master
+on: push
 
 jobs:
-  rainforest:
+  test:
     runs-on: ubuntu-latest
-    name: Run Rainforest
     steps:
       - uses: actions/checkout@v2
-      - name: Rainforest
+      - name: Install faketime
+        run: sudo apt-get install faketime
+      - name: Base case command
+        id: test_base
         uses: ./
         with:
-          token: ${{ secrets.RAINFOREST_API_TOKEN }}
-          run_group_id: 9861
+          token: test_token
+          run_group_id: 42
+          dry_run: true
+      - name: Base case test
+        env:
+          GITHUB_REPOSITORY: my_org/my_repo
+          GITHUB_REF_NAME: main_branch
+          GITHUB_JOB: ci_test
+          GITHUB_SHA: 1234567890abcdef1234567890abcdef12345678
+          LD_PRELOAD: /usr/local/lib/libfaketime.so.1
+          FAKETIME: 2021-12-31 23:59:59
+          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --description \"my_org/my_repo - main_branch test_ci 2021-12-31T23:59:59Z\" --release 'b22159486110a366be429bb4857ebaf4dec13558'
+        run: |
+          if [ "${{ steps.test_base.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
+            echo "::error ::expected ${{ steps.test_base.outputs.command }} to equal ${EXPECTED_COMMAND}"
+            exit 1
+          fi
+      - name: All parameters command
+        id: test_all_parameters
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: 42
+          description: foo
+          environment_id: 117
+          conflict: abort-all
+          crowd: automation
+          release: '1.0'
+          background: true
+          dry_run: true
+      - name: All parameters test
+        env:
+          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --conflict abort-all --environment-id 117 --crowd automation --description 'foo' --release '1.0' --background
+        run: |
+          if [ "${{ steps.test_all_parameters.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
+            echo "::error ::expected ${{ steps.test_all_parameters.outputs.command }} to equal ${EXPECTED_COMMAND}"
+            exit 1
+          fi
+      - name: Custom URL command
+        id: test_custom_url
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: 42
+          description: foo
+          custom_url: https://something.com
+          release: '1.0'
+          dry_run: true
+      - name: Custom URL test
+        env:
+          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --custom-url https://something.com --description 'foo' --release '1.0'
+        run: |
+          if [ "${{ steps.test_custom_url.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
+            echo "::error ::expected ${{ steps.test_custom_url.outputs.command }} to equal ${EXPECTED_COMMAND}"
+            exit 1
+          fi
+      - name: Environment ID and Custom URL command
+        id: test_environment_id_custom_url
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: 42
+          description: foo
+          environment_id: 117
+          custom_url: https://something.com
+          release: '1.0'
+          dry_run: true
+      - name: Environment ID and Custom URL test
+        env:
+          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --custom-url https://something.com --description 'foo' --release '1.0'
+        run: |
+          if [ "${{ steps.test_environment_id_custom_url.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
+            echo "::error ::expected ${{ steps.test_environment_id_custom_url.outputs.command }} to equal ${EXPECTED_COMMAND}"
+            exit 1
+          fi
+      - name: Missing token command
+        id: test_missing_token
+        uses: ./
+        continue-on-error: true
+      - name: Missing token test
+        run: |
+          if [ "${{ steps.test_missing_token.outcome }}" != 'failure' ] ; then
+            echo "::error ::expected ${{ steps.test_missing_token.outcome }} to equal failure"
+            exit 1
+          fi
+          if [ "${{ steps.test_missing_token.outputs.error }}" != 'Token not set' ] ; then
+            echo "::error ::expected ${{ steps.test_missing_token.outputs.error }} to equal Token not set"
+            exit 1
+          fi
+      - name: Invalid run group command
+        id: test_invalid_run_group
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: nike
+        continue-on-error: true
+      - name: Invalid run group test
+        run: |
+          if [ "${{ steps.test_invalid_run_group.outcome }}" != 'failure' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_run_group.outcome }} to equal failure"
+            exit 1
+          fi
+          if [ "${{ steps.test_invalid_run_group.outputs.error }}" != 'run_group_id not a positive integer (nike)' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_run_group.outputs.error }} to equal run_group_id not a positive integer (nike)"
+            exit 1
+          fi
+      - name: Invalid environment ID command
+        id: test_invalid_environment_id
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: 42
+          environment_id: hostile
+        continue-on-error: true
+      - name: Invalid environment ID test
+        run: |
+          if [ "${{ steps.test_invalid_environment_id.outcome }}" != 'failure' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_environment_id.outcome }} to equal failure"
+            exit 1
+          fi
+          if [ "${{ steps.test_invalid_environment_id.outputs.error }}" != 'environment_id not a positive integer (hostile)' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_environment_id.outputs.error }} to equal environment_id not a positive integer (hostile)"
+            exit 1
+          fi
+      - name: Invalid conflict command
+        id: test_invalid_conflict
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: 42
+          conflict: WWIII
+        continue-on-error: true
+      - name: Invalid conflict test
+        run: |
+          if [ "${{ steps.test_invalid_conflict.outcome }}" != 'failure' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_conflict.outcome }} to equal failure"
+            exit 1
+          fi
+          if [ "${{ steps.test_invalid_conflict.outputs.error }}" != 'WWIII not in (abort abort-all)' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_conflict.outputs.error }} to equal WWIII not in (abort abort-all)"
+            exit 1
+          fi
+      - name: Invalid crowd command
+        id: test_invalid_crowd
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: 42
+          crowd: hipsters
+        continue-on-error: true
+      - name: Invalid crowd test
+        run: |
+          if [ "${{ steps.test_invalid_crowd.outcome }}" != 'failure' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_crowd.outcome }} to equal failure"
+            exit 1
+          fi
+          if [ "${{ steps.test_invalid_crowd.outputs.error }}" != 'hipsters not in (default automation automation_and_crowd on_premise_crowd)' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_crowd.outputs.error }} to equal hipsters not in (default automation automation_and_crowd on_premise_crowd)"
+            exit 1
+          fi

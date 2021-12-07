@@ -1,0 +1,17 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  rainforest:
+    runs-on: ubuntu-latest
+    name: Run Rainforest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Rainforest
+        uses: ./
+        with:
+          token: ${{ secrets.RAINFOREST_API_TOKEN }}
+          run_group_id: 9861

@@ -15,6 +15,11 @@ inputs:
     required: false
     default: ''
 
+  custom_url:
+    description: Use a specific URL for this run
+    required: false
+    default: ''
+
   conflict:
     description: How other currently in-progress runs should be handled. Values are `abort` to cancel runs in the same environment as your new run and `abort-all` to cancel all runs
     required: false
@@ -43,13 +48,21 @@ inputs:
     description: Do not wait for a run to complete before exiting
     required: false
     default: ''
+outputs:
+  command:
+    description: The CLI command that was run
+    value: ${{ steps.validate.outputs.command }}
+  error:
+    description: The validation error that was raised
+    value: ${{ steps.validate.outputs.error }}
+
 runs:
   using: composite
   steps:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "version=0.0.1" >> $GITHUB_ENV
+        echo "version=0.0.2" >> $GITHUB_ENV
     - name: Validate Parameters
       shell: bash
       id: validate
@@ -62,16 +75,21 @@ runs:
 
         echo "::add-mask::${{ inputs.token }}"
 
+        # Define error helper
+        error () {
+          echo "::error ::${1}"
+          echo "::set-output name=error::${1}"
+          exit 1
+        }
+
         # Validate token
         if [ -z "${{ inputs.token }}" ] ; then
-          echo "Error: Token not set"
-          exit 1
+          error "Token not set"
         fi
 
         # Validate run_group_id
         if ! echo "${{ inputs.run_group_id }}" | grep -Eq '^[0-9]+$' ; then
-          echo "Error: run_group_id not a positive integer (${{ inputs.run_group_id }})"
-          exit 1
+          error "run_group_id not a positive integer (${{ inputs.run_group_id }})"
         fi
 
         RUN_COMMAND="run --skip-update --token ${{ inputs.token }} --run-group ${{ inputs.run_group_id }} --junit-file results/rainforest/junit.xml"
@@ -84,19 +102,22 @@ runs:
               RUN_COMMAND="${RUN_COMMAND} --conflict ${{ inputs.conflict }}"
             ;;
             *)
-              echo "Error: ${1} not in (abort abort-all)"
-              exit 1
+              error "${{ inputs.conflict }} not in (abort abort-all)"
             ;;
           esac
         fi
 
-        # Validate environment_id
-        if [ -n "${{ inputs.environment_id }}" ] ; then
+        # Set custom_url, or validate and set environment_id
+        if [ -n "${{ inputs.custom_url }}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --custom-url ${{ inputs.custom_url }}"
+          if [ -n "${{ inputs.environment_id }}" ] ; then
+            echo "::warning title=Environment ID Ignored::You've set values for the mutually exclusive custom_url and environment_id parameters. Unset one of these to fix this warning."
+          fi
+        elif [ -n "${{ inputs.environment_id }}" ] ; then
           if echo "${{ inputs.environment_id }}" | grep -Eq '^[0-9]+$' ; then
             RUN_COMMAND="${RUN_COMMAND} --environment-id ${{ inputs.environment_id }}"
           else
-            echo "Error: environment_id not a positive integer (${{ inputs.environment_id }})"
-            exit 1
+            error "environment_id not a positive integer (${{ inputs.environment_id }})"
           fi
         fi
 
@@ -107,11 +128,10 @@ runs:
             automation) ;&
             automation_and_crowd) ;&
             on_premise_crowd)
-                RUN_COMMAND="${RUN_COMMAND} --crowd ${{ inputs.crowd }}"
+              RUN_COMMAND="${RUN_COMMAND} --crowd ${{ inputs.crowd }}"
             ;;
             *)
-              echo "Error: ${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
-              exit 1
+              error "${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
             ;;
           esac
         fi
@@ -146,13 +166,13 @@ runs:
         args: ${{ steps.validate.outputs.command }}
     - name: Archive Rainforest results
       uses: actions/upload-artifact@v2
-      if: always()
+      if: (! inputs.dry_run) && steps.validate.outputs.command && always()
       with:
         name: Test Results
         path: results/rainforest/junit.xml
     - name: Publish Test Report
       uses: mikepenz/action-junit-report@v2
-      if: always()
+      if: (! inputs.dry_run) && steps.validate.outputs.command && always()
       with:
         check_name: Rainforest Results
         report_paths: results/rainforest/junit.xml
