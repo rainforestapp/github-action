@@ -128,7 +128,7 @@ runs:
             automation) ;&
             automation_and_crowd) ;&
             on_premise_crowd)
-                RUN_COMMAND="${RUN_COMMAND} --crowd ${{ inputs.crowd }}"
+              RUN_COMMAND="${RUN_COMMAND} --crowd ${{ inputs.crowd }}"
             ;;
             *)
               error "${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
