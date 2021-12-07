@@ -62,7 +62,7 @@ runs:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "version=0.0.1" >> $GITHUB_ENV
+        echo "version=0.0.2" >> $GITHUB_ENV
     - name: Validate Parameters
       shell: bash
       id: validate
