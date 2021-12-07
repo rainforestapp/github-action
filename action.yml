@@ -48,6 +48,10 @@ inputs:
     description: Do not wait for a run to complete before exiting
     required: false
     default: ''
+outputs:
+  command:
+    description: The CLI command that was run
+    value: ${{ steps.validate.outputs.command }}
 
 runs:
   using: composite
