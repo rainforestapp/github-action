@@ -52,6 +52,9 @@ outputs:
   command:
     description: The CLI command that was run
     value: ${{ steps.validate.outputs.command }}
+  error:
+    description: The validation error that was raised
+    value: ${{ steps.validate.outputs.error }}
 
 runs:
   using: composite
@@ -72,16 +75,21 @@ runs:
 
         echo "::add-mask::${{ inputs.token }}"
 
+        # Define error helper
+        error () {
+          echo "::error ::${1}"
+          echo "::set-output name=error::${1}"
+          exit 1
+        }
+
         # Validate token
         if [ -z "${{ inputs.token }}" ] ; then
-          echo "Error: Token not set"
-          exit 1
+          error "Token not set"
         fi
 
         # Validate run_group_id
         if ! echo "${{ inputs.run_group_id }}" | grep -Eq '^[0-9]+$' ; then
-          echo "Error: run_group_id not a positive integer (${{ inputs.run_group_id }})"
-          exit 1
+          error "run_group_id not a positive integer (${{ inputs.run_group_id }})"
         fi
 
         RUN_COMMAND="run --skip-update --token ${{ inputs.token }} --run-group ${{ inputs.run_group_id }} --junit-file results/rainforest/junit.xml"
@@ -94,8 +102,7 @@ runs:
               RUN_COMMAND="${RUN_COMMAND} --conflict ${{ inputs.conflict }}"
             ;;
             *)
-              echo "Error: ${1} not in (abort abort-all)"
-              exit 1
+              error "${{ inputs.conflict }} not in (abort abort-all)"
             ;;
           esac
         fi
@@ -110,8 +117,7 @@ runs:
           if echo "${{ inputs.environment_id }}" | grep -Eq '^[0-9]+$' ; then
             RUN_COMMAND="${RUN_COMMAND} --environment-id ${{ inputs.environment_id }}"
           else
-            echo "Error: environment_id not a positive integer (${{ inputs.environment_id }})"
-            exit 1
+            error "environment_id not a positive integer (${{ inputs.environment_id }})"
           fi
         fi
 
@@ -125,8 +131,7 @@ runs:
                 RUN_COMMAND="${RUN_COMMAND} --crowd ${{ inputs.crowd }}"
             ;;
             *)
-              echo "Error: ${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
-              exit 1
+              error "${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
             ;;
           esac
         fi

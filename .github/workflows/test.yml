@@ -96,6 +96,10 @@ jobs:
             echo "::error ::expected ${{ steps.test_missing_token.outcome }} to equal failure"
             exit 1
           fi
+          if [ "${{ steps.test_missing_token.outputs.error }}" != 'Token not set' ] ; then
+            echo "::error ::expected ${{ steps.test_missing_token.outputs.error }} to equal Token not set"
+            exit 1
+          fi
       - name: Invalid run group command
         id: test_invalid_run_group
         uses: ./
@@ -107,6 +111,10 @@ jobs:
         run: |
           if [ "${{ steps.test_invalid_run_group.outcome }}" != 'failure' ] ; then
             echo "::error ::expected ${{ steps.test_invalid_run_group.outcome }} to equal failure"
+            exit 1
+          fi
+          if [ "${{ steps.test_invalid_run_group.outputs.error }}" != 'run_group_id not a positive integer (nike)' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_run_group.outputs.error }} to equal run_group_id not a positive integer (nike)"
             exit 1
           fi
       - name: Invalid environment ID command
@@ -123,6 +131,10 @@ jobs:
             echo "::error ::expected ${{ steps.test_invalid_environment_id.outcome }} to equal failure"
             exit 1
           fi
+          if [ "${{ steps.test_invalid_environment_id.outputs.error }}" != 'environment_id not a positive integer (hostile)' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_environment_id.outputs.error }} to equal environment_id not a positive integer (hostile)"
+            exit 1
+          fi
       - name: Invalid conflict command
         id: test_invalid_conflict
         uses: ./
@@ -137,6 +149,10 @@ jobs:
             echo "::error ::expected ${{ steps.test_invalid_conflict.outcome }} to equal failure"
             exit 1
           fi
+          if [ "${{ steps.test_invalid_conflict.outputs.error }}" != 'WWIII not in (abort abort-all)' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_conflict.outputs.error }} to equal WWIII not in (abort abort-all)"
+            exit 1
+          fi
       - name: Invalid crowd command
         id: test_invalid_crowd
         uses: ./
@@ -149,5 +165,9 @@ jobs:
         run: |
           if [ "${{ steps.test_invalid_crowd.outcome }}" != 'failure' ] ; then
             echo "::error ::expected ${{ steps.test_invalid_crowd.outcome }} to equal failure"
+            exit 1
+          fi
+          if [ "${{ steps.test_invalid_crowd.outputs.error }}" != 'hipsters not in (default automation automation_and_crowd on_premise_crowd)' ] ; then
+            echo "::error ::expected ${{ steps.test_invalid_crowd.outputs.error }} to equal hipsters not in (default automation automation_and_crowd on_premise_crowd)"
             exit 1
           fi
