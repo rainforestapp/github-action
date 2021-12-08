@@ -105,9 +105,9 @@ runs:
           RAINFOREST_RUN_ID=$(cat .rainforest_run_id)
           echo "Rerunning Run ${RAINFOREST_RUN_ID}"
 
-          RUN_COMMAND="rerun ${RAINFOREST_RUN_ID} --skip-update --token ${{ inputs.token }} --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
+          RUN_COMMAND="rerun \"${RAINFOREST_RUN_ID}\" --skip-update --token \"${{ inputs.token }}\" --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
         else
-          RUN_COMMAND="run --skip-update --token ${{ inputs.token }} --run-group ${{ inputs.run_group_id }} --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
+          RUN_COMMAND="run --skip-update --token \"${{ inputs.token }}\" --run-group ${{ inputs.run_group_id }} --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
         fi
 
         # Validate conflict
@@ -125,7 +125,7 @@ runs:
 
         # Set custom_url, or validate and set environment_id
         if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.custom_url }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --custom-url ${{ inputs.custom_url }}"
+          RUN_COMMAND="${RUN_COMMAND} --custom-url \"${{ inputs.custom_url }}\""
           if [ -n "${{ inputs.environment_id }}" ] ; then
             echo "::warning title=Environment ID Ignored::You've set values for the mutually exclusive custom_url and environment_id parameters. Unset one of these to fix this warning."
           fi
