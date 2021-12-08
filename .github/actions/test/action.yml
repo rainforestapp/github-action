@@ -1,0 +1,25 @@
+name: Test helper
+description: Wrapper around pr-mpt/actions-assert - https://github.com/marketplace/actions/assert-actual-is-expected
+inputs:
+  each:
+    description: split actual by line and compare each to expected?
+    required: false
+    default: 'false'
+
+  expected:
+    description: what was expected
+    required: true
+
+  actual:
+    description: what was actual
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: pr-mpt/actions-assert@v3
+      with:
+        assertion: npm://@assertions/is-equal
+        each: ${{ inputs.each }}
+        expected: ${{ inputs.expected }}
+        actual: ${{ inputs.actual }}
