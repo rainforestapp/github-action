@@ -3,26 +3,28 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v2
       - name: Install faketime
-        run: sudo apt-get install faketime
+        run: |
+          sudo apt-get update
+          sudo apt-get install libfaketime
       - name: Base case command
         id: test_base
         uses: ./
+        env:
+          LD_PRELOAD: /usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1
+          FAKETIME: 2021-12-31 23:59:59
         with:
           token: test_token
           run_group_id: 42
           dry_run: true
       - name: Base case test
         env:
-          GITHUB_REPOSITORY: my_org/my_repo
-          GITHUB_REF_NAME: main_branch
-          GITHUB_JOB: ci_test
-          GITHUB_SHA: 1234567890abcdef1234567890abcdef12345678
-          LD_PRELOAD: /usr/local/lib/libfaketime.so.1
-          FAKETIME: 2021-12-31 23:59:59
-          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --description \"my_org/my_repo - main_branch test_ci 2021-12-31T23:59:59Z\" --release 'b22159486110a366be429bb4857ebaf4dec13558'
+          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --description 'rainforestapp/github-action - ${{ github.ref_name }} test 2021-12-31T23:59:59Z' --release '${{ github.sha }}'
         run: |
           if [ "${{ steps.test_base.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
             echo "::error ::expected ${{ steps.test_base.outputs.command }} to equal ${EXPECTED_COMMAND}"

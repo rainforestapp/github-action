@@ -156,7 +156,7 @@ runs:
         if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.description }}" ] ; then
           RUN_COMMAND="${RUN_COMMAND} --description '${{ inputs.description }}'"
         elif [ -z "${RAINFOREST_RUN_ID}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --description \"${GITHUB_REPOSITORY} - ${GITHUB_REF_NAME} ${GITHUB_JOB} $(date -u +'%FT%TZ')\""
+          RUN_COMMAND="${RUN_COMMAND} --description '${GITHUB_REPOSITORY} - ${GITHUB_REF_NAME} ${GITHUB_JOB} $(date -u +'%FT%TZ')'"
         fi
 
         # Set release
