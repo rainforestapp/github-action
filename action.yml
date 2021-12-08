@@ -62,7 +62,15 @@ runs:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "version=0.0.2" >> $GITHUB_ENV
+        echo "version=1.0.0" >> $GITHUB_ENV
+    - name: Check for reruns
+      uses: pat-s/always-upload-cache@v2
+      if: (! inputs.dry_run)
+      with:
+        key: rainforest-run-${{ github.run_number }}-${{ github.run_attempt }}
+        path: .rainforest_run_id
+        restore-keys: |
+          rainforest-run-${{ github.run_number }}-
     - name: Validate Parameters
       shell: bash
       id: validate
@@ -92,7 +100,15 @@ runs:
           error "run_group_id not a positive integer (${{ inputs.run_group_id }})"
         fi
 
-        RUN_COMMAND="run --skip-update --token ${{ inputs.token }} --run-group ${{ inputs.run_group_id }} --junit-file results/rainforest/junit.xml"
+        # Check for rerun
+        if [ -s .rainforest_run_id ] ; then
+          RAINFOREST_RUN_ID=$(cat .rainforest_run_id)
+          echo "Rerunning Run ${RAINFOREST_RUN_ID}"
+
+          RUN_COMMAND="rerun \"${RAINFOREST_RUN_ID}\" --skip-update --token \"${{ inputs.token }}\" --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
+        else
+          RUN_COMMAND="run --skip-update --token \"${{ inputs.token }}\" --run-group ${{ inputs.run_group_id }} --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
+        fi
 
         # Validate conflict
         if [ -n "${{ inputs.conflict }}" ] ; then
@@ -108,12 +124,12 @@ runs:
         fi
 
         # Set custom_url, or validate and set environment_id
-        if [ -n "${{ inputs.custom_url }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --custom-url ${{ inputs.custom_url }}"
+        if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.custom_url }}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --custom-url \"${{ inputs.custom_url }}\""
           if [ -n "${{ inputs.environment_id }}" ] ; then
             echo "::warning title=Environment ID Ignored::You've set values for the mutually exclusive custom_url and environment_id parameters. Unset one of these to fix this warning."
           fi
-        elif [ -n "${{ inputs.environment_id }}" ] ; then
+        elif [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.environment_id }}" ] ; then
           if echo "${{ inputs.environment_id }}" | grep -Eq '^[0-9]+$' ; then
             RUN_COMMAND="${RUN_COMMAND} --environment-id ${{ inputs.environment_id }}"
           else
@@ -122,7 +138,7 @@ runs:
         fi
 
         # Validate crowd
-        if [ -n "${{ inputs.crowd }}" ] ; then
+        if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.crowd }}" ] ; then
           case "${{ inputs.crowd }}" in
             default) ;&
             automation) ;&
@@ -137,16 +153,16 @@ runs:
         fi
 
         # Set description
-        if [ -n "${{ inputs.description }}" ] ; then
+        if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.description }}" ] ; then
           RUN_COMMAND="${RUN_COMMAND} --description '${{ inputs.description }}'"
-        else
-          RUN_COMMAND="${RUN_COMMAND} --description \"${GITHUB_REPOSITORY} - ${GITHUB_REF_NAME} ${GITHUB_JOB} $(date -u +'%FT%TZ')\""
+        elif [ -z "${RAINFOREST_RUN_ID}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --description '${GITHUB_REPOSITORY} - ${GITHUB_REF_NAME} ${GITHUB_JOB} $(date -u +'%FT%TZ')'"
         fi
 
         # Set release
         if [ -n "${{ inputs.release }}" ] ; then
           RUN_COMMAND="${RUN_COMMAND} --release '${{ inputs.release }}'"
-        else
+        elif [ -z "${RAINFOREST_RUN_ID}" ] ; then
           RUN_COMMAND="${RUN_COMMAND} --release '${GITHUB_SHA}'"
         fi
 

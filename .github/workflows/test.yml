@@ -3,26 +3,28 @@ on: push
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v2
       - name: Install faketime
-        run: sudo apt-get install faketime
+        run: |
+          sudo apt-get update
+          sudo apt-get install libfaketime
       - name: Base case command
         id: test_base
         uses: ./
+        env:
+          LD_PRELOAD: /usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1
+          FAKETIME: 2021-12-31 23:59:59
         with:
           token: test_token
           run_group_id: 42
           dry_run: true
       - name: Base case test
         env:
-          GITHUB_REPOSITORY: my_org/my_repo
-          GITHUB_REF_NAME: main_branch
-          GITHUB_JOB: ci_test
-          GITHUB_SHA: 1234567890abcdef1234567890abcdef12345678
-          LD_PRELOAD: /usr/local/lib/libfaketime.so.1
-          FAKETIME: 2021-12-31 23:59:59
-          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --description \"my_org/my_repo - main_branch test_ci 2021-12-31T23:59:59Z\" --release 'b22159486110a366be429bb4857ebaf4dec13558'
+          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --description 'rainforestapp/github-action - ${{ github.ref_name }} test 2021-12-31T23:59:59Z' --release '${{ github.sha }}'
         run: |
           if [ "${{ steps.test_base.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
             echo "::error ::expected ${{ steps.test_base.outputs.command }} to equal ${EXPECTED_COMMAND}"
@@ -43,7 +45,7 @@ jobs:
           dry_run: true
       - name: All parameters test
         env:
-          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --conflict abort-all --environment-id 117 --crowd automation --description 'foo' --release '1.0' --background
+          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --conflict abort-all --environment-id 117 --crowd automation --description 'foo' --release '1.0' --background
         run: |
           if [ "${{ steps.test_all_parameters.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
             echo "::error ::expected ${{ steps.test_all_parameters.outputs.command }} to equal ${EXPECTED_COMMAND}"
@@ -61,7 +63,7 @@ jobs:
           dry_run: true
       - name: Custom URL test
         env:
-          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --custom-url https://something.com --description 'foo' --release '1.0'
+          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --custom-url https://something.com --description 'foo' --release '1.0'
         run: |
           if [ "${{ steps.test_custom_url.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
             echo "::error ::expected ${{ steps.test_custom_url.outputs.command }} to equal ${EXPECTED_COMMAND}"
@@ -80,7 +82,7 @@ jobs:
           dry_run: true
       - name: Environment ID and Custom URL test
         env:
-          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --custom-url https://something.com --description 'foo' --release '1.0'
+          EXPECTED_COMMAND: run --skip-update --token test_token --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --custom-url https://something.com --description 'foo' --release '1.0'
         run: |
           if [ "${{ steps.test_environment_id_custom_url.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
             echo "::error ::expected ${{ steps.test_environment_id_custom_url.outputs.command }} to equal ${EXPECTED_COMMAND}"
@@ -89,6 +91,8 @@ jobs:
       - name: Missing token command
         id: test_missing_token
         uses: ./
+        with:
+          dry_run: true
         continue-on-error: true
       - name: Missing token test
         run: |
@@ -106,6 +110,7 @@ jobs:
         with:
           token: test_token
           run_group_id: nike
+          dry_run: true
         continue-on-error: true
       - name: Invalid run group test
         run: |
@@ -124,6 +129,7 @@ jobs:
           token: test_token
           run_group_id: 42
           environment_id: hostile
+          dry_run: true
         continue-on-error: true
       - name: Invalid environment ID test
         run: |
@@ -142,6 +148,7 @@ jobs:
           token: test_token
           run_group_id: 42
           conflict: WWIII
+          dry_run: true
         continue-on-error: true
       - name: Invalid conflict test
         run: |
@@ -160,6 +167,7 @@ jobs:
           token: test_token
           run_group_id: 42
           crowd: hipsters
+          dry_run: true
         continue-on-error: true
       - name: Invalid crowd test
         run: |
@@ -169,5 +177,29 @@ jobs:
           fi
           if [ "${{ steps.test_invalid_crowd.outputs.error }}" != 'hipsters not in (default automation automation_and_crowd on_premise_crowd)' ] ; then
             echo "::error ::expected ${{ steps.test_invalid_crowd.outputs.error }} to equal hipsters not in (default automation automation_and_crowd on_premise_crowd)"
+            exit 1
+          fi
+      - name: Rerun test setup
+        run: |
+          echo "343" > .rainforest_run_id
+      - name: Rerun command
+        id: test_rerun
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: 42
+          environment_id: 117
+          description: foo
+          conflict: abort
+          crowd: automation
+          release: '1.0'
+          background: true
+          dry_run: true
+      - name: Rerun test
+        env:
+          EXPECTED_COMMAND: rerun 343 --skip-update --token test_token --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --conflict abort --release '1.0' --background
+        run: |
+          if [ "${{ steps.test_rerun.outputs.command }}" != "${EXPECTED_COMMAND}" ] ; then
+            echo "::error ::expected ${{ steps.test_rerun.outputs.command }} to equal ${EXPECTED_COMMAND}"
             exit 1
           fi
