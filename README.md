@@ -110,3 +110,4 @@ This section describes the release process for the Action itself:
 1. Update the version in `action.yml`.
 1. Get review and merge to master.
 1. Create a [GitHub Release](https://github.com/rainforestapp/github-action/releases/new) with the proper `v`-prefixed version tag (i.e. `v0.0.1`). List **Bugfixes**, **Breaking changes**, and **New features** (if present), with links to the PRs. See [previous releases](https://github.com/rainforestapp/github-action/releases) for an idea of the format we're using.
+1. Tag `master` a second time with just the major version: `git tag -f vX && git push -f --tags`. (The `-f` flags can be omitted for `vX.0.0`).
