@@ -54,7 +54,7 @@ jobs:
 An arbitrary string to associate with the run.
 #### Default behavior
 The default value :
-> `"${GITHUB_REPOSITORY} - ${GTIHUB_REF_NAME} ${GITHUB_JOB} $(date -u +'%FT%TZ')"`
+> `"${GITHUB_REPOSITORY} - ${GITHUB_REF_NAME} ${GITHUB_JOB} $(date -u +'%FT%TZ')"`
 
 This means that if no `description` parameter is passed in and your repository is named `my_org/my_repo`, the GitHub job is `#42` on the `my_feature_branch` branch, and the current time (in UTC) is noon on December 31st, 2021; then the created run's description will be:
 > `my_org/my_repo - my_feature_branch 42 2021-12-31T12:00:00Z`
