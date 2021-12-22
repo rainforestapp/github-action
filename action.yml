@@ -103,6 +103,7 @@ runs:
         # Check for rerun
         if [ -s .rainforest_run_id ] ; then
           RAINFOREST_RUN_ID=$(cat .rainforest_run_id)
+          rm .rainforest_run_id
           echo "Rerunning Run ${RAINFOREST_RUN_ID}"
 
           RUN_COMMAND="rerun \"${RAINFOREST_RUN_ID}\" --skip-update --token \"${{ inputs.token }}\" --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
