@@ -74,8 +74,8 @@ How we should handle currently active runs.
 #### Allowed values
 Value | Behavior
 --- | ---
-`abort` | Cancel all other runs in the same environment.
-`abort-all` | Cancel all other runs, regardless of environment.
+`cancel` | Cancel all other runs in the same environment.
+`cancel-all` | Cancel all other runs, regardless of environment.
 #### Default behavior
 If no `conflict` parameter is passed in, then no active runs will be canceled.
 
