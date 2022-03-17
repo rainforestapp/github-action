@@ -21,7 +21,7 @@ inputs:
     default: ''
 
   conflict:
-    description: How other currently in-progress runs should be handled. Values are `abort` to cancel runs in the same environment as your new run and `abort-all` to cancel all runs
+    description: How other currently in-progress runs should be handled. Values are `cancel` to cancel runs in the same environment as your new run and `cancel-all` to cancel all runs
     required: false
     default: ''
 
@@ -62,7 +62,7 @@ runs:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "version=1.0.1" >> $GITHUB_ENV
+        echo "version=1.1.0" >> $GITHUB_ENV
     - name: Check for reruns
       uses: pat-s/always-upload-cache@v2
       if: (! inputs.dry_run)
@@ -114,12 +114,14 @@ runs:
         # Validate conflict
         if [ -n "${{ inputs.conflict }}" ] ; then
           case "${{ inputs.conflict }}" in
+            cancel) ;&
+            cancel-all) ;&
             abort) ;&
             abort-all)
               RUN_COMMAND="${RUN_COMMAND} --conflict ${{ inputs.conflict }}"
             ;;
             *)
-              error "${{ inputs.conflict }} not in (abort abort-all)"
+              error "${{ inputs.conflict }} not in (cancel cancel-all)"
             ;;
           esac
         fi
