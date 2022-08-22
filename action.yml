@@ -115,9 +115,7 @@ runs:
         if [ -n "${{ inputs.conflict }}" ] ; then
           case "${{ inputs.conflict }}" in
             cancel) ;&
-            cancel-all) ;&
-            abort) ;&
-            abort-all)
+            cancel-all)
               RUN_COMMAND="${RUN_COMMAND} --conflict ${{ inputs.conflict }}"
             ;;
             *)
