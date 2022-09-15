@@ -62,7 +62,7 @@ runs:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "version=1.1.0" >> $GITHUB_ENV
+        echo "version=2.0.0" >> $GITHUB_ENV
     - name: Check for reruns
       uses: pat-s/always-upload-cache@v2
       if: (! inputs.dry_run)
@@ -115,9 +115,7 @@ runs:
         if [ -n "${{ inputs.conflict }}" ] ; then
           case "${{ inputs.conflict }}" in
             cancel) ;&
-            cancel-all) ;&
-            abort) ;&
-            abort-all)
+            cancel-all)
               RUN_COMMAND="${RUN_COMMAND} --conflict ${{ inputs.conflict }}"
             ;;
             *)
