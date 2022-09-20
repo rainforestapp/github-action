@@ -25,8 +25,13 @@ inputs:
     required: false
     default: ''
 
+  execution_method:
+    description: The execution method to use for this run
+    required: false
+    default: ''
+
   crowd:
-    description: The crowd to use for this run
+    description: "DEPRECATED: Use `execution_method` instead"
     required: false
     default: ''
 
@@ -138,19 +143,40 @@ runs:
           fi
         fi
 
-        # Validate crowd
-        if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.crowd }}" ] ; then
-          case "${{ inputs.crowd }}" in
-            default) ;&
-            automation) ;&
-            automation_and_crowd) ;&
-            on_premise_crowd)
-              RUN_COMMAND="${RUN_COMMAND} --crowd ${{ inputs.crowd }}"
-            ;;
-            *)
-              error "${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
-            ;;
-          esac
+        # Validate execution_method / crowd
+        if [ -z "${RAINFOREST_RUN_ID}" ] ; then
+          if [ -n "${{ inputs.execution_method }}" ] ; then
+            case "${{ inputs.execution_method }}" in
+              automation) ;&
+              crowd) ;&
+              automation_and_crowd) ;&
+              on_premise)
+                RUN_COMMAND="${RUN_COMMAND} --execution-method ${{ inputs.execution_method }}"
+              ;;
+              *)
+                error "${{ inputs.execution_method }} not in (automation crowd automation_and_crowd on_premise)"
+              ;;
+            esac
+          fi
+
+          if [ -n "${{ inputs.crowd }}" ] ; then
+            echo "::warning The 'crowd' parameter is deprecated, use 'execution_method' instead."
+            if [ -n "${{ inputs.execution_method }}" ] ; then
+              error "Error: execution_method and crowd are mutually exclusive"
+            fi
+
+            case "${{ inputs.crowd }}" in
+              default) ;&
+              automation) ;&
+              automation_and_crowd) ;&
+              on_premise_crowd)
+                RUN_COMMAND="${RUN_COMMAND} --crowd ${{ inputs.crowd }}"
+              ;;
+              *)
+                error "${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
+              ;;
+            esac
+          fi
         fi
 
         # Set description
