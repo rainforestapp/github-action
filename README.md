@@ -101,6 +101,11 @@ Set to `true` to run parameter validations without actually starting a run in Ra
 #### Default behavior
 If no `dry_run` parameter is passed in, the run will be started in Rainforest.
 
+### `automation_max_retries`
+Set to a value larger than `0` to retry failed tests in the same run up to that number of times.
+#### Default behavior
+If no `automation_max_retries ` parameter is passed in, the [default from your account or run group is used](https://help.rainforestqa.com/docs/test-retries).
+
 ## Rerunning failed tests
 If your Rainforest run fails due to a ["non-bug"](https://rainforest.engineering/2021-01-20-shipping-faster-orb/) (your testing environment might have had a hiccup, or a test might have needed to be tweaked, etc), then rather than make code changes and then run your full testing suite once more, you'll instead want to rerun just the tests that failed. The Rainforest QA GitHub Action uses GitHub [caching](https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows) to know when a workflow is [being rerun](https://docs.github.com/en/actions/managing-workflow-runs/re-running-workflows-and-jobs). It will then automatically rerun only the tests which failed in the previous run.
 

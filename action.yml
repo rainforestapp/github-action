@@ -53,6 +53,12 @@ inputs:
     description: Do not wait for a run to complete before exiting
     required: false
     default: ''
+
+  automation_max_retries:
+    description: If set to a value > 0 and a test fails, it will be retried within the same run, up to that number of times
+    required: false
+    default: ''
+
 outputs:
   command:
     description: The CLI command that was run
@@ -196,6 +202,11 @@ runs:
         # Set background
         if [ -n "${{ inputs.background }}" ] ; then
           RUN_COMMAND="${RUN_COMMAND} --background"
+        fi
+
+        # Set automation_max_retries
+        if [ -n "${{ inputs.automation_max_retries }}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --automation-max-retries ${{ inputs.automation_max_retries }}"
         fi
 
         echo "::set-output name=command::${RUN_COMMAND}"
