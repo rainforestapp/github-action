@@ -38,13 +38,14 @@ jobs:
           conflict: cancel-all
           execution_method: automation
           release: '1.0'
+          automation_max_retries: 2
           background: true
           dry_run: true
       - name: All parameters test
         uses: ./.github/actions/test
         with:
           actual: ${{ steps.test_all_parameters.outputs.command }}
-          expected: run --skip-update --token "test_token" --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --conflict cancel-all --environment-id 117 --execution-method automation --description "foo bar" --release "1.0" --background
+          expected: run --skip-update --token "test_token" --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --conflict cancel-all --environment-id 117 --execution-method automation --automation-max-retries 2 --description "foo bar" --release "1.0" --background
       - name: Custom URL command
         id: test_custom_url
         uses: ./
@@ -156,6 +157,20 @@ jobs:
         with:
           actual: ${{ steps.test_invalid_crowd.outputs.error }}
           expected: hipsters not in (default automation automation_and_crowd on_premise_crowd)
+      - name: Invalid automation max retries command
+        id: test_invalid_automation_max_retries
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: 42
+          automation_max_retries: infinite
+          dry_run: true
+        continue-on-error: true
+      - name: Invalid automation max retries test
+        uses: ./.github/actions/test
+        with:
+          actual: ${{ steps.test_invalid_automation_max_retries.outputs.error }}
+          expected: automation_max_retries not a positive integer (infinite)
       - name: Invalid parameter generic test
         uses: ./.github/actions/test
         with:
@@ -166,6 +181,7 @@ jobs:
             ${{ steps.test_invalid_environment_id.outcome }}
             ${{ steps.test_invalid_conflict.outcome }}
             ${{ steps.test_invalid_crowd.outcome }}
+            ${{ steps.test_invalid_automation_max_retries.outcome }}
           expected: failure
       - name: Rerun test setup
         run: |
