@@ -180,6 +180,7 @@ jobs:
             ${{ steps.test_invalid_run_group.outcome }}
             ${{ steps.test_invalid_environment_id.outcome }}
             ${{ steps.test_invalid_conflict.outcome }}
+            ${{ steps.test_invalid_execution_method.outcome }}
             ${{ steps.test_invalid_crowd.outcome }}
             ${{ steps.test_invalid_automation_max_retries.outcome }}
           expected: failure
