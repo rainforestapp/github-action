@@ -53,6 +53,12 @@ inputs:
     description: Do not wait for a run to complete before exiting
     required: false
     default: ''
+
+  automation_max_retries:
+    description: If set to a value > 0 and a test fails, it will be retried within the same run, up to that number of times
+    required: false
+    default: ''
+
 outputs:
   command:
     description: The CLI command that was run
@@ -67,7 +73,7 @@ runs:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "version=2.1.0" >> $GITHUB_ENV
+        echo "version=2.2.0" >> $GITHUB_ENV
     - name: Check for reruns
       uses: pat-s/always-upload-cache@v2
       if: (! inputs.dry_run)
@@ -176,6 +182,15 @@ runs:
                 error "${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
               ;;
             esac
+          fi
+        fi
+
+        # Validate automation_max_retries
+        if [ -n "${{ inputs.automation_max_retries }}" ] ; then
+          if echo "${{ inputs.automation_max_retries }}" | grep -Eq '^[0-9]+$' ; then
+            RUN_COMMAND="${RUN_COMMAND} --automation-max-retries ${{ inputs.automation_max_retries }}"
+          else
+            error "automation_max_retries not a positive integer (${{ inputs.automation_max_retries }})"
           fi
         fi
 
