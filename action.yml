@@ -78,10 +78,10 @@ runs:
       uses: pat-s/always-upload-cache@v2
       if: (! inputs.dry_run)
       with:
-        key: rainforest-run-${{ github.run_number }}-${{ github.run_attempt }}
+        key: rainforest-run-${{ github.run_id }}-${{ github.action }}-${{ github.run_attempt }}
         path: .rainforest_run_id
         restore-keys: |
-          rainforest-run-${{ github.run_number }}-
+          rainforest-run-${{ github.run_id }}-${{ github.action }}-
     - name: Validate Parameters
       shell: bash
       id: validate
