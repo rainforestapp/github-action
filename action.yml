@@ -73,15 +73,15 @@ runs:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "version=2.2.0" >> $GITHUB_ENV
+        echo "version=2.2.1" >> $GITHUB_ENV
     - name: Check for reruns
       uses: pat-s/always-upload-cache@v2
       if: (! inputs.dry_run)
       with:
-        key: rainforest-run-${{ github.run_number }}-${{ github.run_attempt }}
+        key: rainforest-run-${{ github.run_id }}-${{ github.action }}-${{ github.run_attempt }}
         path: .rainforest_run_id
         restore-keys: |
-          rainforest-run-${{ github.run_number }}-
+          rainforest-run-${{ github.run_id }}-${{ github.action }}-
     - name: Validate Parameters
       shell: bash
       id: validate
