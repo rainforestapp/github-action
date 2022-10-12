@@ -75,7 +75,7 @@ runs:
       run: |
         echo "version=2.2.1" >> $GITHUB_ENV
     - name: Check for reruns
-      uses: pat-s/always-upload-cache@v2
+      uses: pat-s/always-upload-cache@v3
       if: (! inputs.dry_run)
       with:
         key: rainforest-run-${{ github.run_id }}-${{ github.action }}-${{ github.run_attempt }}
@@ -223,13 +223,13 @@ runs:
       with:
         args: ${{ steps.validate.outputs.command }}
     - name: Archive Rainforest results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: (! inputs.dry_run) && steps.validate.outputs.command && always()
       with:
         name: Test Results
         path: results/rainforest/junit.xml
     - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v2
+      uses: mikepenz/action-junit-report@v3
       if: (! inputs.dry_run) && steps.validate.outputs.command && always()
       with:
         check_name: Rainforest Results
