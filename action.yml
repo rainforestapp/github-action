@@ -73,7 +73,7 @@ runs:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "version=2.2.1" >> $GITHUB_ENV
+        echo "version=3.0.0" >> $GITHUB_ENV
     - name: Check for reruns
       uses: pat-s/always-upload-cache@v3
       if: (! inputs.dry_run)
