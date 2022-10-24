@@ -59,6 +59,11 @@ inputs:
     required: false
     default: ''
 
+  branch:
+    description: Use a specific Rainforest branch for this run
+    required: false
+    default: ''
+
 outputs:
   command:
     description: The CLI command that was run
@@ -192,6 +197,11 @@ runs:
           else
             error "automation_max_retries not a positive integer (${{ inputs.automation_max_retries }})"
           fi
+        fi
+
+        # Set branch
+        if [ -n "${{ inputs.branch }}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --branch \"${{ inputs.branch }}\""
         fi
 
         # Set description
