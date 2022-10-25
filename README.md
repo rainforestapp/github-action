@@ -106,6 +106,11 @@ Set to a value larger than `0` to retry failed tests excuted by our automation a
 #### Default behavior
 If no `automation_max_retries` parameter is passed in, the [default from your account or run group is used](https://help.rainforestqa.com/docs/test-retries).
 
+### `branch`
+Use a specific Rainforest branch for this run.
+#### Default behavior
+If no `branch_name` parameter is passed in, the `main` branch will be used.
+
 ## Rerunning failed tests
 If your Rainforest run fails due to a ["non-bug"](https://rainforest.engineering/2021-01-20-shipping-faster-orb/) (your testing environment might have had a hiccup, or a test might have needed to be tweaked, etc), then rather than make code changes and then run your full testing suite once more, you'll instead want to rerun just the tests that failed. The Rainforest QA GitHub Action uses GitHub [caching](https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows) to know when a workflow is [being rerun](https://docs.github.com/en/actions/managing-workflow-runs/re-running-workflows-and-jobs). It will then automatically rerun only the tests which failed in the previous run.
 
