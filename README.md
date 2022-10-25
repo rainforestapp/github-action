@@ -121,3 +121,5 @@ This section describes the release process for the Action itself:
 1. Get review and merge to master.
 1. Create a [GitHub Release](https://github.com/rainforestapp/github-action/releases/new) with the proper `v`-prefixed version tag (i.e. `v0.0.1`). List **Bugfixes**, **Breaking changes**, and **New features** (if present), with links to the PRs. See [previous releases](https://github.com/rainforestapp/github-action/releases) for an idea of the format we're using.
 1. The `release.yml` workflow will then run to update the major release tag. E.g. if your release was for `v1.2.3`, then it will automatically update the `v1` tag.
+
+If you want to run an integration test, create a new branch in a repo of your choice and add a new workflow to`.github/workflows/` with the action pointing to your commit.
