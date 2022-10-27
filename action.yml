@@ -76,7 +76,7 @@ inputs:
   cache_key:
     description: The cache key to use for saving/restoring a Rainforest run ID (used to rerun failed tests)
     required: false
-    default: '${{ github.action }}'
+    default: '${{ github.job }}-${{ github.action }}'
 
 outputs:
   command:
