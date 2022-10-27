@@ -1,0 +1,11 @@
+on:
+  push:
+
+jobs:
+  first-run:
+    uses: ./.github/workflows/rainforest.yml
+    secrets: inherit
+  second-run:
+    needs: first-run
+    uses: ./.github/workflows/rainforest.yml
+    secrets: inherit
