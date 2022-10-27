@@ -40,20 +40,6 @@ inputs:
     required: false
     default: ''
 
-  token:
-    description: Your Rainforest QA API token
-    required: true
-
-  dry_run:
-    description: Set to true to run parameter validations without starting a new Rainforest run
-    required: false
-    default: ''
-
-  background:
-    description: Do not wait for a run to complete before exiting
-    required: false
-    default: ''
-
   automation_max_retries:
     description: If set to a value > 0 and a test fails, it will be retried within the same run, up to that number of times
     required: false
@@ -63,6 +49,25 @@ inputs:
     description: Use a specific Rainforest branch for this run
     required: false
     default: ''
+
+  token:
+    description: Your Rainforest QA API token
+    required: true
+
+  background:
+    description: Do not wait for a run to complete before exiting
+    required: false
+    default: ''
+
+  dry_run:
+    description: Set to true to run parameter validations without starting a new Rainforest run
+    required: false
+    default: ''
+
+  cache_key:
+    description: The cache key to use for saving/restoring a Rainforest run ID (used to rerun failed tests)
+    required: false
+    default: '${{ github.action }}'
 
 outputs:
   command:
@@ -83,10 +88,10 @@ runs:
       uses: pat-s/always-upload-cache@v3
       if: (! inputs.dry_run)
       with:
-        key: rainforest-run-${{ github.run_id }}-${{ github.action }}-${{ github.run_attempt }}
+        key: rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-${{ github.run_attempt }}
         path: .rainforest_run_id
         restore-keys: |
-          rainforest-run-${{ github.run_id }}-${{ github.action }}-
+          rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-
     - name: Validate Parameters
       shell: bash
       id: validate

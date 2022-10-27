@@ -4,8 +4,12 @@ on:
 jobs:
   first-run:
     uses: ./.github/workflows/rainforest.yml
+    with:
+      cache_key: first-run
     secrets: inherit
   second-run:
     needs: first-run
     uses: ./.github/workflows/rainforest.yml
+    with:
+      cache_key: second-run
     secrets: inherit

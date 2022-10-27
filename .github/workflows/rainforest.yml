@@ -1,5 +1,9 @@
 on:
   workflow_call:
+    inputs:
+      cache_key:
+        type: string
+        required: false
   workflow_dispatch:
   push:
     branches:
@@ -16,3 +20,4 @@ jobs:
         with:
           token: ${{ secrets.RAINFOREST_API_TOKEN }}
           run_group_id: 9861
+          cache_key: ${{ inputs.cache_key }}
