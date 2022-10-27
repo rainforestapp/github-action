@@ -1,6 +1,9 @@
 name: Rainforest QA GitHub Action
 description: Easily trigger a Rainforest Run from your GitHub workflows
 inputs:
+  #
+  # Rainforest API parameters
+  #
   description:
     description: An arbitrary string to associate with the run
     required: false
@@ -40,20 +43,6 @@ inputs:
     required: false
     default: ''
 
-  token:
-    description: Your Rainforest QA API token
-    required: true
-
-  dry_run:
-    description: Set to true to run parameter validations without starting a new Rainforest run
-    required: false
-    default: ''
-
-  background:
-    description: Do not wait for a run to complete before exiting
-    required: false
-    default: ''
-
   automation_max_retries:
     description: If set to a value > 0 and a test fails, it will be retried within the same run, up to that number of times
     required: false
@@ -61,6 +50,26 @@ inputs:
 
   branch:
     description: Use a specific Rainforest branch for this run
+    required: false
+    default: ''
+
+  token:
+    description: Your Rainforest QA API token
+    required: true
+
+  #
+  # Rainforest CLI flags
+  #
+  background:
+    description: Do not wait for a run to complete before exiting
+    required: false
+    default: ''
+
+  #
+  # GitHub Action-specific inputs
+  #
+  dry_run:
+    description: Set to true to run parameter validations without starting a new Rainforest run
     required: false
     default: ''
 
