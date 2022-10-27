@@ -77,7 +77,7 @@ jobs:
         with:
           actual: ${{ steps.test_environment_id_custom_url.outputs.command }}
           expected: run --skip-update --token "test_token" --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --custom-url "https://something.com" --description "foo bar" --release "1.0"
-      - name: Branch
+      - name: Branch command
         id: test_branch
         uses: ./
         with:
@@ -87,7 +87,7 @@ jobs:
           branch: feature-branch
           release: '1.0'
           dry_run: true
-      - name: Branch
+      - name: Branch test
         uses: ./.github/actions/test
         with:
           actual: ${{ steps.test_branch.outputs.command }}
