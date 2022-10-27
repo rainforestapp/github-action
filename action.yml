@@ -73,6 +73,11 @@ inputs:
     required: false
     default: ''
 
+  cache_key:
+    description: The cache key to use for saving/restoring a Rainforest run ID (used to rerun failed tests)
+    required: false
+    default: '${{ github.action }}'
+
 outputs:
   command:
     description: The CLI command that was run
@@ -92,10 +97,10 @@ runs:
       uses: pat-s/always-upload-cache@v3
       if: (! inputs.dry_run)
       with:
-        key: rainforest-run-${{ github.run_id }}-${{ github.action }}-${{ github.run_attempt }}
+        key: rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-${{ github.run_attempt }}
         path: .rainforest_run_id
         restore-keys: |
-          rainforest-run-${{ github.run_id }}-${{ github.action }}-
+          rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-
     - name: Validate Parameters
       shell: bash
       id: validate
