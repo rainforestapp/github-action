@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Run Rainforest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Rainforest
         uses: ./
         with:

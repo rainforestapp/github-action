@@ -96,11 +96,6 @@ A string used to link a run to a release (for example, a `git` SHA or tag, a ver
 #### Default behavior
 If no `release` parameter is passed in, the SHA1 hash of the latest commit of the current workflow (obtained via the `GITHUB_SHA` environment variable) will be used.
 
-### `dry_run`
-Set to `true` to run parameter validations without actually starting a run in Rainforest.
-#### Default behavior
-If no `dry_run` parameter is passed in, the run will be started in Rainforest.
-
 ### `automation_max_retries`
 Set to a value larger than `0` to retry failed tests excuted by our automation agent in the same run up to that number of times.
 #### Default behavior
@@ -111,8 +106,55 @@ Use a specific Rainforest branch for this run.
 #### Default behavior
 If no `branch` parameter is passed in, the `main` branch will be used.
 
+### `background`
+Set to `true` to immediately complete the GitHub workflow job without waiting for the Rainforest run to complete
+### Default behavior
+By default we wait for the run to complete in order to pass or fail the workflow job based on the run's result.
+
+### `dry_run`
+Set to `true` to run parameter validations without actually starting a run in Rainforest.
+#### Default behavior
+If no `dry_run` parameter is passed in, the run will be started in Rainforest.
+
 ## Rerunning failed tests
 If your Rainforest run fails due to a ["non-bug"](https://rainforest.engineering/2021-01-20-shipping-faster-orb/) (your testing environment might have had a hiccup, or a test might have needed to be tweaked, etc), then rather than make code changes and then run your full testing suite once more, you'll instead want to rerun just the tests that failed. The Rainforest QA GitHub Action uses GitHub [caching](https://docs.github.com/en/actions/advanced-guides/caching-dependencies-to-speed-up-workflows) to know when a workflow is [being rerun](https://docs.github.com/en/actions/managing-workflow-runs/re-running-workflows-and-jobs). It will then automatically rerun only the tests which failed in the previous run.
+
+## Running multiple Rainforest runs from a single workflow using `worklow_call`
+The Rainforest QA GitHub Action cannot detect on its own when it is being called multiple times in a single workflow through an intermediary reusable workflow. This means that the second invocation will attempt to rerun the run created by the first invocation, which will fail if that run has no failed tests to rerun. In order to avoid this situation, set the `cache_key` parameter to a distinct value in each invocation:
+
+```yml
+# reusable workflow
+on:
+  worklow_call:
+    inputs:
+      cache_key:
+        type: string
+
+jobs:
+  rainforest:
+    runs-on: ubuntu-latest
+    name: Run Rainforest
+    steps:
+      - name: Rainforest
+        uses: rainforestapp/github-action@master
+        with:
+          token: ${{ secrets.RAINFOREST_API_TOKEN }}
+          run_group_id: 1234
+```
+
+```yml
+# calling workflow
+jobs:
+  first-invocation:
+    uses: ./.github/workflows/reusable.yml
+    with:
+      cache_key: first-invocation
+
+  second-invocation:
+    uses: ./.github/workflows/reusable.yml
+    with:
+      cache_key: second-invocation
+```
 
 ## GitHub Action Release Process
 This section describes the release process for the Action itself:

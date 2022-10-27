@@ -1,6 +1,9 @@
 name: Rainforest QA GitHub Action
 description: Easily trigger a Rainforest Run from your GitHub workflows
 inputs:
+  #
+  # Rainforest API parameters
+  #
   description:
     description: An arbitrary string to associate with the run
     required: false
@@ -34,23 +37,10 @@ inputs:
     description: "DEPRECATED: Use `execution_method` instead"
     required: false
     default: ''
+    deprecationMessage: "Use `execution_method` instead. For more information, see https://github.com/rainforestapp/github-action/releases/tag/v2.1.0."
 
   release:
     description: Manually entered release information about the release the run is associated with
-    required: false
-    default: ''
-
-  token:
-    description: Your Rainforest QA API token
-    required: true
-
-  dry_run:
-    description: Set to true to run parameter validations without starting a new Rainforest run
-    required: false
-    default: ''
-
-  background:
-    description: Do not wait for a run to complete before exiting
     required: false
     default: ''
 
@@ -63,6 +53,31 @@ inputs:
     description: Use a specific Rainforest branch for this run
     required: false
     default: ''
+
+  token:
+    description: Your Rainforest QA API token
+    required: true
+
+  #
+  # Rainforest CLI flags
+  #
+  background:
+    description: Do not wait for a run to complete before exiting
+    required: false
+    default: ''
+
+  #
+  # GitHub Action-specific inputs
+  #
+  dry_run:
+    description: Set to true to run parameter validations without starting a new Rainforest run
+    required: false
+    default: ''
+
+  cache_key:
+    description: The cache key to use for saving/restoring a Rainforest run ID (used to rerun failed tests)
+    required: false
+    default: '${{ github.job }}-${{ github.action }}'
 
 outputs:
   command:
@@ -78,15 +93,15 @@ runs:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "version=3.0.0" >> $GITHUB_ENV
+        echo "version=3.2.0" >> $GITHUB_ENV
     - name: Check for reruns
       uses: pat-s/always-upload-cache@v3
       if: (! inputs.dry_run)
       with:
-        key: rainforest-run-${{ github.run_id }}-${{ github.action }}-${{ github.run_attempt }}
+        key: rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-${{ github.run_attempt }}
         path: .rainforest_run_id
         restore-keys: |
-          rainforest-run-${{ github.run_id }}-${{ github.action }}-
+          rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-
     - name: Validate Parameters
       shell: bash
       id: validate
@@ -102,7 +117,7 @@ runs:
         # Define error helper
         error () {
           echo "::error ::${1}"
-          echo "::set-output name=error::${1}"
+          echo "error=${1}" >> $GITHUB_OUTPUT
           exit 1
         }
 
@@ -171,7 +186,6 @@ runs:
           fi
 
           if [ -n "${{ inputs.crowd }}" ] ; then
-            echo "::warning The 'crowd' parameter is deprecated, use 'execution_method' instead."
             if [ -n "${{ inputs.execution_method }}" ] ; then
               error "Error: execution_method and crowd are mutually exclusive"
             fi
@@ -223,7 +237,7 @@ runs:
           RUN_COMMAND="${RUN_COMMAND} --background"
         fi
 
-        echo "::set-output name=command::${RUN_COMMAND}"
+        echo "command=${RUN_COMMAND}" >> $GITHUB_OUTPUT
 
     - name: Run Rainforest
       uses: docker://gcr.io/rf-public-images/rainforest-cli:latest
