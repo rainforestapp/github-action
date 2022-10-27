@@ -37,6 +37,7 @@ inputs:
     description: "DEPRECATED: Use `execution_method` instead"
     required: false
     default: ''
+    deprecationMessage: "Use `execution_method` instead. For more information, see https://github.com/rainforestapp/github-action/releases/tag/v2.1.0."
 
   release:
     description: Manually entered release information about the release the run is associated with
@@ -185,7 +186,6 @@ runs:
           fi
 
           if [ -n "${{ inputs.crowd }}" ] ; then
-            echo "::warning The 'crowd' parameter is deprecated, use 'execution_method' instead."
             if [ -n "${{ inputs.execution_method }}" ] ; then
               error "Error: execution_method and crowd are mutually exclusive"
             fi
