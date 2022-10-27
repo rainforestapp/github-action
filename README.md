@@ -140,6 +140,7 @@ jobs:
         with:
           token: ${{ secrets.RAINFOREST_API_TOKEN }}
           run_group_id: 1234
+          cache_key: ${{ inputs.cache_key }}
 ```
 
 ```yml
