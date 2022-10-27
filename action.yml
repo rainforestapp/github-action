@@ -116,7 +116,7 @@ runs:
         # Define error helper
         error () {
           echo "::error ::${1}"
-          echo "::set-output name=error::${1}"
+          echo "error=${1}" >> $GITHUB_OUTPUT
           exit 1
         }
 
@@ -237,7 +237,7 @@ runs:
           RUN_COMMAND="${RUN_COMMAND} --background"
         fi
 
-        echo "::set-output name=command::${RUN_COMMAND}"
+        echo "command=${RUN_COMMAND}" >> $GITHUB_OUTPUT
 
     - name: Run Rainforest
       uses: docker://gcr.io/rf-public-images/rainforest-cli:latest
