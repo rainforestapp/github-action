@@ -211,7 +211,7 @@ jobs:
           environment_id: 117
           description: foo bar
           conflict: cancel
-          crowd: automation
+          execution_method: automation
           release: '1.0'
           background: true
           dry_run: true
