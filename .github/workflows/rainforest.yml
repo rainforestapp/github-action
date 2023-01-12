@@ -13,5 +13,5 @@ jobs:
       - name: Rainforest
         uses: ./
         with:
-          token: ${{ secrets.RAINFOREST_API_TOKEN }}
+          token: ${{ secrets.RF_MAIN_API_TOKEN }}
           run_group_id: 9861
