@@ -17,7 +17,7 @@ jobs:
         uses: ./
         env:
           LD_PRELOAD: /usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1
-          FAKETIME: 2021-12-31 23:59:59
+          FAKETIME: '2021-12-31 23:59:59'
         with:
           token: test_token
           run_group_id: 42
