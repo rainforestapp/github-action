@@ -17,7 +17,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: pr-mpt/actions-assert@v3
+    - uses: pr-mpt/actions-assert@v4
       with:
         assertion: npm://@assertions/is-equal
         each: ${{ inputs.each }}
