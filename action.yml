@@ -102,6 +102,16 @@ runs:
         path: .rainforest_run_id
         restore-keys: |
           rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-
+    - name: Escape Parameters
+      id: escape
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const inputs = ${{ toJSON(inputs) }};
+          for(const property in inputs) {
+            core.exportVariable('RF_' + property.toUpperCase(), inputs[property]);
+          }
+
     - name: Validate Parameters
       shell: bash
       id: validate
@@ -214,20 +224,20 @@ runs:
         fi
 
         # Set branch
-        if [ -n "${{ inputs.branch }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --branch \"${{ inputs.branch }}\""
+        if [ -n "${RF_BRANCH}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --branch \"${RF_BRANCH//\"/\\\"}\""
         fi
 
         # Set description
-        if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.description }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --description \"${{ inputs.description }}\""
+        if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${RF_DESCRIPTION}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --description \"${RF_DESCRIPTION//\"/\\\"}\""
         elif [ -z "${RAINFOREST_RUN_ID}" ] ; then
           RUN_COMMAND="${RUN_COMMAND} --description \"${GITHUB_REPOSITORY} - ${GITHUB_REF_NAME} ${GITHUB_JOB} $(date -u +'%FT%TZ')\""
         fi
 
         # Set release
-        if [ -n "${{ inputs.release }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --release \"${{ inputs.release }}\""
+        if [ -n "${RF_RELEASE}" ] ; then
+          RUN_COMMAND="${RUN_COMMAND} --release \"${RF_RELEASE//\"/\\\"}\""
         elif [ -z "${RAINFOREST_RUN_ID}" ] ; then
           RUN_COMMAND="${RUN_COMMAND} --release \"${GITHUB_SHA}\""
         fi
