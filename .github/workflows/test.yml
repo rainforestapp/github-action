@@ -92,6 +92,21 @@ jobs:
         with:
           actual: ${{ steps.test_branch.outputs.command }}
           expected: run --skip-update --token "test_token" --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --branch "feature-branch" --description "foo bar" --release "1.0"
+      - name: Quoted parameters command
+        id: test_quoted_parameters
+        uses: ./
+        with:
+          token: test_token
+          run_group_id: 42
+          description: something"exit 1
+          branch: some name"exit 2
+          release: some sha"exit 3
+          dry_run: true
+      - name: Quoted parameters test
+        uses: ./.github/actions/test
+        with:
+          actual: ${{ steps.test_quoted_parameters.outputs.command }}
+          expected: run --skip-update --token "test_token" --run-group 42 --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id --branch "some name\"exit 2" --description "something\"exit 1" --release "some sha\"exit 3"
       - name: Missing token command
         id: test_missing_token
         uses: ./
