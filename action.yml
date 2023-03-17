@@ -102,19 +102,25 @@ runs:
         path: .rainforest_run_id
         restore-keys: |
           rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-
-    - name: Escape Parameters
-      id: escape
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const inputs = ${{ toJSON(inputs) }};
-          for(const property in inputs) {
-            core.exportVariable('RF_' + property.toUpperCase(), inputs[property]);
-          }
 
     - name: Validate Parameters
       shell: bash
       id: validate
+      env:
+        RF_DESCRIPTION: ${{ inputs.description }}
+        RF_RUN_GROUP_ID: ${{ inputs.run_group_id }}
+        RF_ENVIRONMENT_ID: ${{ inputs.environment_id }}
+        RF_CUSTOM_URL: ${{ inputs.custom_url }}
+        RF_CONFLICT: ${{ inputs.conflict }}
+        RF_EXECUTION_METHOD: ${{ inputs.execution_method }}
+        RF_CROWD: ${{ inputs.crowd }}
+        RF_RELEASE: ${{ inputs.release }}
+        RF_AUTOMATION_MAX_RETRIES: ${{ inputs.automation_max_retries }}
+        RF_BRANCH: ${{ inputs.branch }}
+        RF_TOKEN: ${{ inputs.token }}
+        RF_BACKGROUND: ${{ inputs.background }}
+        RF_DRY_RUN: ${{ inputs.dry_run }}
+        RF_CACHE_KEY: ${{ inputs.cache_key }}
       run: steps/validate.sh
 
     - name: Run Rainforest
