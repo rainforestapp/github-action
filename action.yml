@@ -92,8 +92,7 @@ runs:
   steps:
     - name: Set Action Version
       shell: bash
-      run: |
-        echo "version=3.2.0" >> $GITHUB_ENV
+      run: echo "RF_ACTION_VERSION=3.2.1" >> $GITHUB_ENV
     - name: Check for reruns
       uses: pat-s/always-upload-cache@v3
       if: (! inputs.dry_run)
@@ -102,142 +101,26 @@ runs:
         path: .rainforest_run_id
         restore-keys: |
           rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-
+
     - name: Validate Parameters
       shell: bash
       id: validate
-      run: |
-        # Show Action Version
-        echo "Using Rainforest GitHub Action v${{ env.version }}"
-
-        # Ensure results directory is there
-        mkdir -p results/rainforest
-
-        echo "::add-mask::${{ inputs.token }}"
-
-        # Define error helper
-        error () {
-          echo "::error ::${1}"
-          echo "error=${1}" >> $GITHUB_OUTPUT
-          exit 1
-        }
-
-        # Validate token
-        if [ -z "${{ inputs.token }}" ] ; then
-          error "Token not set"
-        fi
-
-        # Validate run_group_id
-        if ! echo "${{ inputs.run_group_id }}" | grep -Eq '^[0-9]+$' ; then
-          error "run_group_id not a positive integer (${{ inputs.run_group_id }})"
-        fi
-
-        # Check for rerun
-        if [ -s .rainforest_run_id ] ; then
-          RAINFOREST_RUN_ID=$(cat .rainforest_run_id)
-          rm .rainforest_run_id
-          echo "Rerunning Run ${RAINFOREST_RUN_ID}"
-
-          RUN_COMMAND="rerun \"${RAINFOREST_RUN_ID}\" --skip-update --token \"${{ inputs.token }}\" --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
-        else
-          RUN_COMMAND="run --skip-update --token \"${{ inputs.token }}\" --run-group ${{ inputs.run_group_id }} --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
-        fi
-
-        # Validate conflict
-        if [ -n "${{ inputs.conflict }}" ] ; then
-          case "${{ inputs.conflict }}" in
-            cancel) ;&
-            cancel-all)
-              RUN_COMMAND="${RUN_COMMAND} --conflict ${{ inputs.conflict }}"
-            ;;
-            *)
-              error "${{ inputs.conflict }} not in (cancel cancel-all)"
-            ;;
-          esac
-        fi
-
-        # Set custom_url, or validate and set environment_id
-        if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.custom_url }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --custom-url \"${{ inputs.custom_url }}\""
-          if [ -n "${{ inputs.environment_id }}" ] ; then
-            echo "::warning title=Environment ID Ignored::You've set values for the mutually exclusive custom_url and environment_id parameters. Unset one of these to fix this warning."
-          fi
-        elif [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.environment_id }}" ] ; then
-          if echo "${{ inputs.environment_id }}" | grep -Eq '^[0-9]+$' ; then
-            RUN_COMMAND="${RUN_COMMAND} --environment-id ${{ inputs.environment_id }}"
-          else
-            error "environment_id not a positive integer (${{ inputs.environment_id }})"
-          fi
-        fi
-
-        # Validate execution_method / crowd
-        if [ -z "${RAINFOREST_RUN_ID}" ] ; then
-          if [ -n "${{ inputs.execution_method }}" ] ; then
-            case "${{ inputs.execution_method }}" in
-              automation) ;&
-              crowd) ;&
-              automation_and_crowd) ;&
-              on_premise)
-                RUN_COMMAND="${RUN_COMMAND} --execution-method ${{ inputs.execution_method }}"
-              ;;
-              *)
-                error "${{ inputs.execution_method }} not in (automation crowd automation_and_crowd on_premise)"
-              ;;
-            esac
-          fi
-
-          if [ -n "${{ inputs.crowd }}" ] ; then
-            if [ -n "${{ inputs.execution_method }}" ] ; then
-              error "Error: execution_method and crowd are mutually exclusive"
-            fi
-
-            case "${{ inputs.crowd }}" in
-              default) ;&
-              automation) ;&
-              automation_and_crowd) ;&
-              on_premise_crowd)
-                RUN_COMMAND="${RUN_COMMAND} --crowd ${{ inputs.crowd }}"
-              ;;
-              *)
-                error "${{ inputs.crowd }} not in (default automation automation_and_crowd on_premise_crowd)"
-              ;;
-            esac
-          fi
-        fi
-
-        # Validate automation_max_retries
-        if [ -n "${{ inputs.automation_max_retries }}" ] ; then
-          if echo "${{ inputs.automation_max_retries }}" | grep -Eq '^[0-9]+$' ; then
-            RUN_COMMAND="${RUN_COMMAND} --automation-max-retries ${{ inputs.automation_max_retries }}"
-          else
-            error "automation_max_retries not a positive integer (${{ inputs.automation_max_retries }})"
-          fi
-        fi
-
-        # Set branch
-        if [ -n "${{ inputs.branch }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --branch \"${{ inputs.branch }}\""
-        fi
-
-        # Set description
-        if [ -z "${RAINFOREST_RUN_ID}" ] && [ -n "${{ inputs.description }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --description \"${{ inputs.description }}\""
-        elif [ -z "${RAINFOREST_RUN_ID}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --description \"${GITHUB_REPOSITORY} - ${GITHUB_REF_NAME} ${GITHUB_JOB} $(date -u +'%FT%TZ')\""
-        fi
-
-        # Set release
-        if [ -n "${{ inputs.release }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --release \"${{ inputs.release }}\""
-        elif [ -z "${RAINFOREST_RUN_ID}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --release \"${GITHUB_SHA}\""
-        fi
-
-        # Set background
-        if [ -n "${{ inputs.background }}" ] ; then
-          RUN_COMMAND="${RUN_COMMAND} --background"
-        fi
-
-        echo "command=${RUN_COMMAND}" >> $GITHUB_OUTPUT
+      env:
+        RF_DESCRIPTION: ${{ inputs.description }}
+        RF_RUN_GROUP_ID: ${{ inputs.run_group_id }}
+        RF_ENVIRONMENT_ID: ${{ inputs.environment_id }}
+        RF_CUSTOM_URL: ${{ inputs.custom_url }}
+        RF_CONFLICT: ${{ inputs.conflict }}
+        RF_EXECUTION_METHOD: ${{ inputs.execution_method }}
+        RF_CROWD: ${{ inputs.crowd }}
+        RF_RELEASE: ${{ inputs.release }}
+        RF_AUTOMATION_MAX_RETRIES: ${{ inputs.automation_max_retries }}
+        RF_BRANCH: ${{ inputs.branch }}
+        RF_TOKEN: ${{ inputs.token }}
+        RF_BACKGROUND: ${{ inputs.background }}
+        RF_DRY_RUN: ${{ inputs.dry_run }}
+        RF_CACHE_KEY: ${{ inputs.cache_key }}
+      run: steps/validate.sh
 
     - name: Run Rainforest
       uses: docker://gcr.io/rf-public-images/rainforest-cli:latest
