@@ -92,7 +92,7 @@ runs:
   steps:
     - name: Set Action Version
       shell: bash
-      run: echo "RF_ACTION_VERSION=3.2.1" >> $GITHUB_ENV
+      run: echo "RF_ACTION_VERSION=3.2.2" >> $GITHUB_ENV
     - name: Check for reruns
       uses: pat-s/always-upload-cache@v3
       if: (! inputs.dry_run)
