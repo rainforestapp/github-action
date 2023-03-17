@@ -120,7 +120,7 @@ runs:
         RF_BACKGROUND: ${{ inputs.background }}
         RF_DRY_RUN: ${{ inputs.dry_run }}
         RF_CACHE_KEY: ${{ inputs.cache_key }}
-      run: steps/validate.sh
+      run: ${GITHUB_ACTION_PATH}/steps/validate.sh
 
     - name: Run Rainforest
       uses: docker://gcr.io/rf-public-images/rainforest-cli:latest
