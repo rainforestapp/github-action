@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Show Action Version
 echo "Using Rainforest GitHub Action v${RF_ACTION_VERSION}"
 
@@ -33,6 +35,7 @@ if [ -s .rainforest_run_id ] ; then
 
   RUN_COMMAND="rerun \"${RAINFOREST_RUN_ID}\" --skip-update --token \"${RF_TOKEN}\" --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
 else
+  RAINFOREST_RUN_ID=""
   RUN_COMMAND="run --skip-update --token \"${RF_TOKEN}\" --run-group ${RF_RUN_GROUP_ID} --junit-file results/rainforest/junit.xml --save-run-id .rainforest_run_id"
 fi
 
