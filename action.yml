@@ -137,7 +137,7 @@ runs:
         name: Test Results
         path: results/rainforest/junit.xml
     - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v3
+      uses: mikepenz/action-junit-report@v4
       if: (! inputs.dry_run) && steps.validate.outputs.command && always()
       with:
         check_name: Rainforest Results
