@@ -14,7 +14,7 @@
 
 ### A Rainforest QA account
 
-If you don't already have one, you can sign up for a free account [here](https://app.rainforestqa.com/auth/signup?utm_source=github&utm_medium=readme&utm_campaign=ghaction).
+If you don't already have one, you can talk to us about setting up an account [here](https://www.rainforestqa.com/talk-to-sales?utm_source=github&utm_medium=readme&utm_campaign=ghaction).
 
 ### A Rainforest QA API token
 
