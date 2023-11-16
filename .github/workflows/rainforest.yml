@@ -15,3 +15,15 @@ jobs:
         with:
           token: ${{ secrets.RF_MAIN_API_TOKEN }}
           run_group_id: 9861
+      - name: Get run source
+        id: get_run_source
+        env:
+          token: ${{ secrets.RF_MAIN_API_TOKEN }}
+        run: |
+          source=$(curl -s -X GET -H "Client-Token: $token" "https://app.rainforestqa.com/api/1/runs/$(cat .rainforest_run_id)?slim=true" | jq -r ".source")
+          echo "source=$source" >> "$GITHUB_OUTPUT"
+      - name: Test run source
+        uses: ./.github/actions/test
+        with:
+          actual: ${{ steps.get_run_source.outputs.source }}
+          expected: rainforest-gh-action

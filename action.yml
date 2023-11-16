@@ -93,7 +93,7 @@ runs:
     - name: Set Action Version
       shell: bash
       run: |
-        echo "RF_ACTION_VERSION=3.2.4" >> $GITHUB_ENV
+        echo "RF_ACTION_VERSION=3.2.5" >> $GITHUB_ENV
     - name: Check for reruns
       uses: pat-s/always-upload-cache@v3
       if: (! inputs.dry_run)
@@ -127,7 +127,7 @@ runs:
       uses: docker://gcr.io/rf-public-images/rainforest-cli:latest
       if: (! inputs.dry_run)
       env:
-        GH_ACTION_VERSION: ${{ env.version }}
+        GH_ACTION_VERSION: ${{ env.RF_ACTION_VERSION }}
       with:
         args: ${{ steps.validate.outputs.command }}
     - name: Archive Rainforest results
