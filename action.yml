@@ -131,7 +131,7 @@ runs:
       with:
         args: ${{ steps.validate.outputs.command }}
     - name: Archive Rainforest results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: (! inputs.dry_run) && steps.validate.outputs.command && always()
       with:
         name: Test Results
