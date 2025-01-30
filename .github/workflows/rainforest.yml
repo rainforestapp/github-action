@@ -14,7 +14,7 @@ jobs:
         uses: ./
         with:
           token: ${{ secrets.RF_MAIN_API_TOKEN }}
-          run_group_id: 9861
+          run_group_id: 17684
       - name: Get run source
         id: get_run_source
         env:
