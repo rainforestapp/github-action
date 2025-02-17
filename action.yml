@@ -95,9 +95,10 @@ runs:
       run: |
         echo "RF_ACTION_VERSION=3.2.6" >> $GITHUB_ENV
     - name: Check for reruns
-      uses: pat-s/always-upload-cache@v3
+      uses: actions/cache@v4
       if: (! inputs.dry_run)
       with:
+        save-always: true
         key: rainforest-run-${{ github.run_id }}-${{ inputs.cache_key }}-${{ github.run_attempt }}
         path: .rainforest_run_id
         restore-keys: |
